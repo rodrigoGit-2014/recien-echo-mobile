@@ -1,0 +1,79 @@
+/* ---------- buttons ---------- */
+.re-btn {
+  height: 56px;
+  border-radius: 18px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  width: 100%;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+.re-btn:active { transform: scale(0.97); }
+.re-btn:disabled { opacity: 0.4; pointer-events: none; }
+.re-btn--primary { background: var(--accent); color: var(--on-accent); }
+.re-btn--fresh { background: var(--fresh); color: var(--on-fresh); }
+.re-btn--ghost { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+.re-btn--sm { height: 44px; border-radius: 14px; font-size: 14.5px; }
+.re-btn--link { background: none; height: auto; width: auto; color: var(--accent); font-size: 14.5px; }
+
+/* ---------- inputs ---------- */
+.re-field { display: flex; flex-direction: column; gap: 7px; }
+.re-field__label { font-size: 13px; font-weight: 600; color: var(--text-dim); }
+.re-field__wrap { position: relative; }
+.re-input {
+  height: 54px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--text);
+  width: 100%;
+  transition: border-color 120ms ease;
+  font-family: var(--font-body);
+}
+.re-input::placeholder { color: var(--text-dim); }
+.re-input:focus { outline: none; border-color: var(--accent); }
+.re-input--error { border-color: var(--error-border); }
+.re-input--pw { padding-right: 50px; }
+.re-eye-btn {
+  position: absolute; right: 14px; top: 0; bottom: 0;
+  background: none; border: none; color: var(--text-dim);
+  display: flex; align-items: center; justify-content: center;
+}
+.re-field__error {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--error-text);
+}
+.re-field__hint { font-size: 12.5px; color: var(--text-dim); }
+
+textarea.re-input { height: auto; min-height: 92px; padding: 14px 16px; resize: none; line-height: 1.5; }
+
+/* ---------- pin / código de dígitos ---------- */
+.re-code-inputs { display: flex; gap: 10px; justify-content: center; }
+.re-code-digit {
+  width: 52px; height: 60px; border-radius: 14px; background: var(--surface);
+  border: 1px solid var(--line); text-align: center; font-family: var(--font-mono);
+  font-weight: 700; font-size: 22px; color: var(--text);
+}
+.re-code-digit:focus { outline: none; border-color: var(--accent); }
+.re-code-digit--error { border-color: var(--error-border); }
+.re-pin-header { display: flex; align-items: center; justify-content: space-between; }
+.re-pin-eye {
+  background: none; border: none; color: var(--text-dim);
+  display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+}
+
+/* ---------- banners ---------- */
+.re-banner-error {
+  display: flex; align-items: flex-start; gap: 10px; padding: 14px;
+  border-radius: 14px; background: rgba(255,122,107,0.1); border: 1px solid rgba(255,122,107,0.3);
+  color: var(--error-text); font-size: 13.5px; line-height: 1.45;
+}

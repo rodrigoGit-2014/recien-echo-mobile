@@ -1,0 +1,130 @@
+.re-map {
+  position: absolute; inset: 0; overflow: hidden; background: #21252B;
+}
+.re-map__block {
+  position: absolute; border: 1px solid rgba(255,255,255,0.035);
+}
+.re-map__park {
+  position: absolute; background: #2C3A2E; border-radius: 18px;
+}
+.re-map__water {
+  position: absolute; background: #2A4A57; border-radius: 30px;
+}
+.re-map__street {
+  position: absolute; background: rgba(255,255,255,0.05);
+}
+.re-map__avenue {
+  position: absolute; background: rgba(255,255,255,0.09);
+}
+.re-map__highlight {
+  position: absolute; background: #E6B645; opacity: 0.85;
+}
+.re-map__label {
+  position: absolute; font-size: 9.5px; font-weight: 600; color: rgba(255,255,255,0.28);
+  letter-spacing: 0.02em; white-space: nowrap;
+}
+
+.re-user-marker { position: absolute; width: 18px; height: 18px; transform: translate(-50%, -50%); z-index: 5; }
+.re-user-marker__halo {
+  position: absolute; top: 50%; left: 50%; width: 120px; height: 120px;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(circle, rgba(66,133,244,0.28) 0%, rgba(66,133,244,0) 70%);
+}
+.re-user-marker__sonar {
+  position: absolute; top: 50%; left: 50%; width: 18px; height: 18px;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  border: 2px solid #4285F4; animation: re-sonar 2.6s ease-out infinite;
+}
+.re-user-marker__dot {
+  position: absolute; top: 50%; left: 50%; width: 18px; height: 18px;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: #4285F4; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.re-pin {
+  position: absolute; width: 50px; height: 50px;
+  transform: translate(-50%, -100%);
+  display: flex; flex-direction: column; align-items: center;
+  z-index: 6; cursor: pointer;
+}
+.re-pin__drop {
+  width: 50px; height: 50px; border-radius: 50% 50% 50% 0;
+  transform: rotate(45deg);
+  border: 2.5px solid #fff;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  animation: re-pop 380ms cubic-bezier(.3,.7,.2,1) backwards;
+}
+.re-pin__drop-icon { transform: rotate(-45deg); }
+.re-pin--selected .re-pin__drop { transform: rotate(45deg) scale(1.12); }
+.re-pin__capsule {
+  margin-top: 6px; background: #fff; color: #17170f;
+  font-family: var(--font-mono); font-weight: 700; font-size: 11px;
+  border-radius: 10px; padding: 3px 8px;
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+.re-pin__capsule-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.re-cluster {
+  position: absolute; width: 56px; height: 56px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: var(--accent); border: 3px solid #fff;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4); z-index: 6; cursor: pointer;
+  animation: re-pop 380ms cubic-bezier(.3,.7,.2,1) backwards;
+}
+.re-cluster__count { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--on-accent); line-height: 1; }
+.re-cluster__label {
+  position: absolute; top: 60px; background: rgba(20,20,16,0.85); color: var(--text);
+  font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 8px; white-space: nowrap;
+}
+
+.re-radar-topbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+  background: rgba(20,20,16,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  padding-top: 47px;
+}
+.re-radar-topbar__row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 12px; }
+.re-radar-iconbtn {
+  width: 42px; height: 42px; border-radius: 13px; background: rgba(31,31,26,0.9);
+  border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
+  position: relative; color: var(--text);
+}
+.re-radar-iconbtn__dot {
+  position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--urgente);
+  border: 1.5px solid rgba(20,20,16,0.9);
+}
+.re-cat-carousel {
+  display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 14px; scrollbar-width: none;
+}
+
+.re-center-btn {
+  position: absolute; right: 16px; width: 48px; height: 48px; border-radius: 15px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text);
+  display: flex; align-items: center; justify-content: center; z-index: 15;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35); transition: bottom 340ms cubic-bezier(.3,.8,.3,1), transform 120ms;
+}
+.re-center-btn:active { transform: scale(0.94); }
+
+.re-nearby-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 20px 14px; cursor: pointer; flex-shrink: 0; }
+.re-nearby-title { font-family: var(--font-display); font-weight: 800; font-size: 19px; }
+.re-nearby-count { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+.re-nearby-chevron { transition: transform 260ms ease; color: var(--text-dim); }
+.re-nearby-chevron--up { transform: rotate(180deg); }
+
+.re-product-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px;
+  border: 1px solid transparent; transition: background 150ms, border-color 150ms;
+}
+.re-product-card--active { background: rgba(255,224,61,0.08); border-color: rgba(255,224,61,0.35); }
+.re-product-thumb {
+  width: 62px; height: 62px; border-radius: 14px; flex-shrink: 0; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.re-product-thumb__icon { opacity: 0.55; }
+.re-product-info { flex: 1; min-width: 0; }
+.re-product-name { font-weight: 700; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.re-product-biz { font-size: 13px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.re-product-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12.5px; color: var(--text-dim); }
+.re-product-meta__dot { width: 6px; height: 6px; border-radius: 50%; }
