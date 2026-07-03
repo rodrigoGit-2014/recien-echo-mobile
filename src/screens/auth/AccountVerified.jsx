@@ -1,7 +1,7 @@
 import { Button } from "../../components/common/Button.jsx";
 import { CheckIcon } from "../../components/common/icons.jsx";
 
-export function AccountVerifiedScreen({ nav }) {
+export function AccountVerifiedScreen({ nav, onContinue }) {
   return (
     <div className="re-screen re-screen-enter">
       <div className="re-permission">
@@ -19,7 +19,9 @@ export function AccountVerifiedScreen({ nav }) {
         </div>
       </div>
       <div className="re-pad" style={{ paddingBottom: 40 }}>
-        <Button variant="fresh" onClick={() => nav.go("configureBusiness")}>Configurar mi negocio</Button>
+        <Button variant="fresh" onClick={onContinue || (() => nav.go("configureBusiness"))}>
+          Configurar mi negocio
+        </Button>
       </div>
     </div>
   );

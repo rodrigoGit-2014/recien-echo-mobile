@@ -2,7 +2,10 @@ import { useCallback, useState } from "react";
 
 // Router de pila única con back/forward, sin dependencias externas.
 export function useNav(initialScreen = "splash") {
-  const [stack, setStack] = useState([{ screen: initialScreen, params: {} }]);
+  // Dev: permite ir directo a una pantalla con ?screen=nombrePantalla
+  const params = new URLSearchParams(window.location.search);
+  const devScreen = params.get("screen") || initialScreen;
+  const [stack, setStack] = useState([{ screen: devScreen, params: {} }]);
 
   const go = useCallback((screen, params = {}) => {
     setStack((s) => [...s, { screen, params }]);

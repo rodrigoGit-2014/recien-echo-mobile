@@ -35,7 +35,11 @@ const DEFAULT_BUSINESS = {
   address: "",
   description: "",
   code: null,
+  lat: null,
+  lng: null,
 };
+
+const API_BASE = "/api";
 
 export function App() {
   const nav = useNav();
@@ -51,6 +55,7 @@ export function App() {
   ]);
   const [selectedPin, setSelectedPin] = useState(null);
   const [lastPublished, setLastPublished] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
   const spawnCounter = useRef(0);
 
   // reloj global: actualiza frescura y hace expirar / aparecer pines
@@ -84,22 +89,55 @@ export function App() {
     collaborators: collaborators.filter((c) => c.active).length,
   };
 
-  function handleSaveBusiness(draft) {
-    // El correo ya se verificó antes de llegar aquí (ver CreateBusinessAccountScreen
-    // → VerifyEmailScreen → AccountVerifiedScreen → configureBusiness), así que
-    // tanto crear como editar el negocio terminan en el panel.
+  async function handleSaveBusiness(draft) {
+    // Guardar en el backend
+    const email = draft.email || userEmail || params.email;
+    if (email) {
+      try {
+        const res = await fetch(`${API_BASE}/business`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, ...draft }),
+        });
+        const data = await res.json();
+        if (data.ok && data.business) {
+          setBusiness(data.business);
+          nav.go("dashboard");
+          return;
+        }
+      } catch (err) {
+        console.error("Error guardando negocio:", err);
+      }
+    }
+    // Fallback: guardar solo en estado local
     const code = business.code || generateBusinessCode(draft.category);
     setBusiness((b) => ({ ...b, ...draft, code }));
     nav.go("dashboard");
   }
 
-  function handleLoginSuccess(user) {
+  async function handleLoginSuccess(user) {
+    setUserEmail(user.email);
+    // Intentar cargar negocio existente del backend
+    try {
+      const res = await fetch(`${API_BASE}/business/${encodeURIComponent(user.email)}`);
+      const data = await res.json();
+      if (data.ok && data.business) {
+        setBusiness(data.business);
+        nav.go("dashboard");
+        return;
+      }
+    } catch (err) {
+      console.error("Error cargando negocio:", err);
+    }
+    // Si no hay negocio, crear uno básico
     setBusiness((b) => (b.code ? b : {
       name: b.name || `Negocio de ${user.email.split("@")[0]}`,
       category: b.category || "pan",
       address: b.address || "Dirección pendiente de configurar",
       description: "",
       code: generateBusinessCode(b.category || "pan"),
+      lat: null,
+      lng: null,
     }));
     nav.go("dashboard");
   }
@@ -126,6 +164,7 @@ export function App() {
 
   function handleLogout() {
     setBusiness(DEFAULT_BUSINESS);
+    setUserEmail(null);
     nav.reset("splash");
   }
 
@@ -170,7 +209,16 @@ export function App() {
       node = <VerifyEmailScreen nav={nav} email={params.email || "tunegocio@correo.com"} />;
       break;
     case "accountVerified":
-      node = <AccountVerifiedScreen nav={nav} />;
+      node = (
+        <AccountVerifiedScreen
+          nav={nav}
+          email={params.email}
+          onContinue={() => {
+            setUserEmail(params.email);
+            nav.go("configureBusiness", { email: params.email });
+          }}
+        />
+      );
       break;
     case "login":
       node = <LoginScreen nav={nav} onLoginSuccess={handleLoginSuccess} />;
@@ -192,6 +240,7 @@ export function App() {
           nav={nav}
           initial={business}
           editMode={!!params.editMode}
+          email={userEmail || params.email}
           onSave={handleSaveBusiness}
         />
       );

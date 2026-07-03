@@ -2,6 +2,7 @@ import { Router } from "express";
 import { AuthError } from "./errors.js";
 import { resetDatabase } from "./db.js";
 import * as authService from "./authService.js";
+import * as businessService from "./businessService.js";
 
 export const router = Router();
 
@@ -52,6 +53,18 @@ router.post(
   handle(async (req) =>
     authService.resetPassword(req.body.email, req.body.code, req.body.newPassword)
   )
+);
+
+// ─── Negocio ───────────────────────────────────────────────────────────────
+
+router.post(
+  "/business",
+  handle(async (req) => businessService.saveBusiness(req.body))
+);
+
+router.get(
+  "/business/:email",
+  handle(async (req) => businessService.getBusinessByEmail(req.params.email))
 );
 
 // Solo para desarrollo: limpia la base de datos en memoria del servidor.

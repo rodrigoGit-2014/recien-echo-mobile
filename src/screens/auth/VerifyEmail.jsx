@@ -30,7 +30,7 @@ export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com" }) {
     setVerifyError(null);
     try {
       await verifyUser(email, enteredCode);
-      nav.go("accountVerified");
+      nav.go("accountVerified", { email });
     } catch (err) {
       setVerifyError(err.message || "No pudimos verificar tu cuenta. Inténtalo de nuevo.");
     } finally {

@@ -4,13 +4,16 @@ import { CATEGORIES } from "../../data/categories.js";
 import { TopBar } from "../../components/common/TopBar.jsx";
 import { TextField, TextAreaField } from "../../components/common/TextField.jsx";
 import { Button } from "../../components/common/Button.jsx";
-import { CameraIcon, PlusIcon, MapPinIcon } from "../../components/common/icons.jsx";
+import { CameraIcon, PlusIcon } from "../../components/common/icons.jsx";
+import { LocationPicker } from "../../components/common/LocationPicker.jsx";
 
-export function ConfigureBusinessScreen({ nav, initial, editMode, onSave }) {
+export function ConfigureBusinessScreen({ nav, initial, editMode, email, onSave }) {
   const [name, setName] = useState(initial?.name || "");
   const [category, setCategory] = useState(initial?.category || "pan");
   const [address, setAddress] = useState(initial?.address || "");
   const [description, setDescription] = useState(initial?.description || "");
+  const [lat, setLat] = useState(initial?.lat || null);
+  const [lng, setLng] = useState(initial?.lng || null);
   const canSubmit = name.trim().length > 1 && address.trim().length > 3;
 
   return (
@@ -53,36 +56,39 @@ export function ConfigureBusinessScreen({ nav, initial, editMode, onSave }) {
           <div className="re-field">
             <label className="re-field__label">Categoría principal</label>
             <div className="re-cat-grid">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`re-cat-tile ${category === c.id ? "re-cat-tile--active" : ""}`}
-                  style={category === c.id ? { background: `${c.tint}26`, borderColor: c.tint } : undefined}
-                  onClick={() => setCategory(c.id)}
-                >
-                  <CatIcon id={c.id} size={22} color={category === c.id ? c.tint : "var(--text-dim)"} />
-                  <span className="re-cat-tile__label">{c.label}</span>
-                </button>
-              ))}
+              {CATEGORIES.map((c) => {
+                const isSelected = category === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`re-cat-tile ${isSelected ? "re-cat-tile--active" : ""}`}
+                    style={{
+                      background: `${c.tint}${isSelected ? "30" : "18"}`,
+                      borderColor: isSelected ? c.tint : `${c.tint}40`,
+                    }}
+                    onClick={() => setCategory(c.id)}
+                  >
+                    <CatIcon id={c.id} size={22} color={c.tint} />
+                    <span className="re-cat-tile__label" style={{ color: isSelected ? c.tint : "var(--text)" }}>
+                      {c.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div>
-            <TextField label="Ubicación" placeholder="Calle, número, comuna" value={address} onChange={(e) => setAddress(e.target.value)} />
-            <div style={{
-              height: 92, borderRadius: 14, marginTop: 10, position: "relative", overflow: "hidden",
-              background: "#21252B", border: "1px solid var(--line)",
-            }}>
-              {[18, 42, 66].map((p, i) => (
-                <div key={i} style={{ position: "absolute", left: 0, top: `${p}%`, width: "100%", height: 1, background: "rgba(255,255,255,0.08)" }} />
-              ))}
-              {[20, 50, 80].map((p, i) => (
-                <div key={"v" + i} style={{ position: "absolute", top: 0, left: `${p}%`, width: 1, height: "100%", background: "rgba(255,255,255,0.08)" }} />
-              ))}
-              <MapPinIcon size={22} color="var(--accent)" style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-100%)" }} />
-            </div>
-          </div>
+          <LocationPicker
+            address={address}
+            onAddressChange={(e) => setAddress(e.target.value)}
+            lat={lat}
+            lng={lng}
+            onLocationChange={(newLat, newLng) => {
+              setLat(newLat);
+              setLng(newLng);
+            }}
+          />
 
           <TextAreaField label="Descripción (opcional)" placeholder="Cuéntale a tus vecinos qué los hace especiales..." value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
@@ -91,7 +97,7 @@ export function ConfigureBusinessScreen({ nav, initial, editMode, onSave }) {
           <Button
             variant="primary"
             disabled={!canSubmit}
-            onClick={() => onSave({ name, category, address, description })}
+            onClick={() => onSave({ email, name, category, address, description, lat, lng })}
           >
             {editMode ? "Guardar cambios" : "Crear negocio"}
           </Button>

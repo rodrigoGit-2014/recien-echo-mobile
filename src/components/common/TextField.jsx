@@ -1,6 +1,6 @@
 import { AlertIcon } from "./icons.jsx";
 
-export function TextField({ label, value, onChange, placeholder, type = "text", error, hint, rightSlot }) {
+export function TextField({ label, value, onChange, placeholder, type = "text", error, hint, rightSlot, ...rest }) {
   return (
     <div className="re-field">
       {label && <label className="re-field__label">{label}</label>}
@@ -11,6 +11,7 @@ export function TextField({ label, value, onChange, placeholder, type = "text", 
           onChange={onChange}
           placeholder={placeholder}
           type={type}
+          {...rest}
         />
         {rightSlot}
       </div>

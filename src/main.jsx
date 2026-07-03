@@ -1,10 +1,12 @@
 import { createRoot } from "react-dom/client";
 import { App } from "./App.jsx";
+import "leaflet/dist/leaflet.css";
 import "./styles/tokens.css";
 import "./styles/device.css";
 import "./styles/forms.css";
 import "./styles/layout.css";
 import "./styles/radar.css";
+import "./styles/leaflet.css";
 
 // Atajo para pruebas: visitar la app con ?resetDb limpia la base de datos en
 // memoria del servidor (usuarios, códigos, etc.) antes de montar React.
