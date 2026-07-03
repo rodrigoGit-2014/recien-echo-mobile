@@ -167,7 +167,7 @@ export function App() {
       node = <CreateBusinessAccountScreen nav={nav} />;
       break;
     case "verifyEmail":
-      node = <VerifyEmailScreen nav={nav} email={params.email || "tunegocio@correo.com"} previewUrl={params.previewUrl} />;
+      node = <VerifyEmailScreen nav={nav} email={params.email || "tunegocio@correo.com"} />;
       break;
     case "accountVerified":
       node = <AccountVerifiedScreen nav={nav} />;
@@ -179,7 +179,7 @@ export function App() {
       node = <ForgotPasswordScreen nav={nav} />;
       break;
     case "resetPassword":
-      node = <ResetPasswordScreen nav={nav} email={params.email || "tunegocio@correo.com"} previewUrl={params.previewUrl} />;
+      node = <ResetPasswordScreen nav={nav} email={params.email || "tunegocio@correo.com"} />;
       break;
     case "passwordUpdated":
       node = <PasswordUpdatedScreen nav={nav} />;

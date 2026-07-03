@@ -52,16 +52,14 @@ export async function registerUser({ email, password, role = "vecino" }) {
   };
   db.users.set(normalized, user);
 
-  let previewUrl = null;
   if (needsVerification) {
     const { subject, html } = verificationEmailContent(verificationCode);
-    const result = await sendEmail({ to: normalized, subject, html });
-    previewUrl = result.previewUrl;
+    await sendEmail({ to: normalized, subject, html });
     // eslint-disable-next-line no-console
     console.log(`[auth] código de verificación para ${normalized}: ${verificationCode}`);
   }
 
-  return { user: sanitizeUser(user), previewUrl };
+  return { user: sanitizeUser(user) };
 }
 
 export async function loginUser({ email, password }) {
@@ -108,10 +106,10 @@ export async function resendVerificationCode(email) {
   db.users.set(normalized, user);
 
   const { subject, html } = verificationEmailContent(user.verificationCode);
-  const { previewUrl } = await sendEmail({ to: normalized, subject, html });
+  await sendEmail({ to: normalized, subject, html });
   // eslint-disable-next-line no-console
   console.log(`[auth] código de verificación reenviado para ${normalized}: ${user.verificationCode}`);
-  return { previewUrl };
+  return { success: true };
 }
 
 export async function requestPasswordReset(email) {
@@ -127,10 +125,10 @@ export async function requestPasswordReset(email) {
   db.users.set(normalized, user);
 
   const { subject, html } = passwordResetEmailContent(user.resetCode);
-  const { previewUrl } = await sendEmail({ to: normalized, subject, html });
+  await sendEmail({ to: normalized, subject, html });
   // eslint-disable-next-line no-console
   console.log(`[auth] código de recuperación para ${normalized}: ${user.resetCode}`);
-  return { previewUrl };
+  return { success: true };
 }
 
 export async function resetPassword(email, code, newPassword) {

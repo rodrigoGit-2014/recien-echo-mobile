@@ -21,8 +21,8 @@ export function CreateBusinessAccountScreen({ nav }) {
     setEmailError(null);
     setPinError(null);
     try {
-      const { previewUrl } = await registerUser({ email, password: pin, role: "negocio" });
-      nav.go("verifyEmail", { email, previewUrl });
+      await registerUser({ email, password: pin, role: "negocio" });
+      nav.go("verifyEmail", { email });
     } catch (err) {
       if (err.code === "INVALID_PASSWORD") setPinError(err.message);
       else setEmailError(err.message || "No pudimos crear tu cuenta. Inténtalo de nuevo.");

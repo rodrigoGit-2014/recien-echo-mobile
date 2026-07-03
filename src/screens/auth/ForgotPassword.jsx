@@ -16,8 +16,8 @@ export function ForgotPasswordScreen({ nav }) {
     setPending(true);
     setError(null);
     try {
-      const { previewUrl } = await requestPasswordReset(email);
-      nav.go("resetPassword", { email, previewUrl });
+      await requestPasswordReset(email);
+      nav.go("resetPassword", { email });
     } catch (err) {
       setError(err.message || "No pudimos procesar tu solicitud. Inténtalo de nuevo.");
     } finally {

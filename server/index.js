@@ -4,10 +4,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { router } from "./routes.js";
-import { describeEmailMode } from "./email.js";
+import { describeEmailMode, validateSmtpConfig } from "./email.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.join(__dirname, "..", "dist");
+
+// Validar configuración SMTP antes de iniciar
+validateSmtpConfig();
 
 const app = express();
 const PORT = process.env.PORT || 3001;

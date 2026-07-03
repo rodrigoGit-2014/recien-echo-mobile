@@ -6,7 +6,7 @@ import { AlertIcon } from "../../components/common/icons.jsx";
 import { resetPassword } from "../../services/authService.js";
 import { isValidPin } from "../../utils/validators.js";
 
-export function ResetPasswordScreen({ nav, email = "tunegocio@correo.com", previewUrl }) {
+export function ResetPasswordScreen({ nav, email = "tunegocio@correo.com" }) {
   const [resetCode, setResetCode] = useState("");
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -42,16 +42,6 @@ export function ResetPasswordScreen({ nav, email = "tunegocio@correo.com", previ
           <p style={{ fontSize: 14, color: "var(--text-dim)", marginTop: 8 }}>
             Enviado a <strong style={{ color: "var(--text)" }}>{email}</strong>
           </p>
-          {previewUrl && (
-            <a
-              href={previewUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: "inline-block", marginTop: 8, fontSize: 13, color: "var(--accent)", fontWeight: 600 }}
-            >
-              Ver correo de prueba ↗
-            </a>
-          )}
         </div>
 
         {error && (

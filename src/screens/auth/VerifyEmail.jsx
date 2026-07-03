@@ -16,8 +16,7 @@ function useCountdown(initial, active) {
   return t;
 }
 
-export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com", previewUrl: initialPreviewUrl }) {
-  const [previewUrl, setPreviewUrl] = useState(initialPreviewUrl || null);
+export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com" }) {
   const [enteredCode, setEnteredCode] = useState("");
   const [resendActive, setResendActive] = useState(true);
   const [pending, setPending] = useState(false);
@@ -41,8 +40,7 @@ export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com", preview
 
   async function handleResend() {
     try {
-      const { previewUrl: url } = await resendVerificationCode(email);
-      setPreviewUrl(url || null);
+      await resendVerificationCode(email);
       setEnteredCode("");
       setVerifyError(null);
       setResendMsg("Te enviamos un nuevo código.");
@@ -66,16 +64,6 @@ export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com", preview
               Enviamos un código de 4 dígitos a <strong style={{ color: "var(--text)" }}>{email}</strong>.
               Ingrésalo abajo para activar tu cuenta.
             </p>
-            {previewUrl && (
-              <a
-                href={previewUrl}
-                target="_blank"
-                rel="noreferrer"
-                style={{ display: "inline-block", marginTop: 10, fontSize: 13, color: "var(--accent)", fontWeight: 600 }}
-              >
-                Ver correo de prueba ↗
-              </a>
-            )}
           </div>
         </div>
 
