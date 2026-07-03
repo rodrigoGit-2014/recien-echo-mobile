@@ -224,24 +224,41 @@ export function App() {
     }
   }
 
-  function handlePublish({ product, quantity }) {
-    const pin = {
-      id: `self-${Date.now()}`,
-      businessId: "self",
-      businessName: business.name || "Tu negocio",
-      category: business.category,
-      address: business.address || "Tu dirección",
-      product,
-      quantity,
-      publishedAt: Date.now(),
-      distanceM: 15,
-      walkMin: 1,
-      x: 46,
-      y: 44,
-    };
-    setPins((prev) => [pin, ...prev]);
-    setLastPublished(pin);
-    nav.go("publishConfirmation");
+  async function handlePublish({ product, quantity, category, confidence }) {
+    try {
+      const res = await fetch(`${API_BASE}/publications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessEmail: userEmail,
+          product,
+          quantity,
+          category,
+          confidence,
+        }),
+      });
+      const data = await res.json();
+
+      const pin = {
+        id: data.publication?.id || `self-${Date.now()}`,
+        businessId: "self",
+        businessName: business.name || "Tu negocio",
+        category: business.category,
+        address: business.address || "Tu dirección",
+        product,
+        quantity,
+        publishedAt: Date.now(),
+        distanceM: 15,
+        walkMin: 1,
+        x: 46,
+        y: 44,
+      };
+      setPins((prev) => [pin, ...prev]);
+      setLastPublished(pin);
+      nav.go("publishConfirmation");
+    } catch (err) {
+      console.error("Error publicando:", err);
+    }
   }
 
   function handleLogout() {

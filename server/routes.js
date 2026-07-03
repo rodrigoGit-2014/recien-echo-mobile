@@ -4,6 +4,8 @@ import { resetDatabase } from "./db.js";
 import * as authService from "./authService.js";
 import * as businessService from "./businessService.js";
 import * as collaboratorService from "./collaboratorService.js";
+import * as visionService from "./visionService.js";
+import * as publicationService from "./publicationService.js";
 
 export const router = Router();
 
@@ -104,6 +106,46 @@ router.delete(
     businessEmail: req.body.businessEmail,
     collaboratorId: req.params.id,
   }))
+);
+
+// ─── Publicaciones ────────────────────────────────────────────────────────
+
+router.post(
+  "/publications",
+  handle(async (req) => publicationService.createPublication(req.body))
+);
+
+router.get(
+  "/publications/:businessEmail",
+  handle(async (req) => publicationService.getActivePublications(req.params.businessEmail))
+);
+
+router.get(
+  "/publications/:businessEmail/history",
+  handle(async (req) => publicationService.getAllPublications(req.params.businessEmail))
+);
+
+router.put(
+  "/publications/:id/deactivate",
+  handle(async (req) => publicationService.deactivatePublication(req.body.businessEmail, req.params.id))
+);
+
+router.get(
+  "/radar/publications",
+  handle(async () => publicationService.getAllActivePublicationsForRadar())
+);
+
+// ─── Visión / Identificación de productos ──────────────────────────────────
+
+router.post(
+  "/identify-product",
+  handle(async (req) => {
+    const { image, mimeType } = req.body;
+    if (!image) {
+      return { ok: false, error: "Se requiere imagen en base64" };
+    }
+    return visionService.identifyProduct(image, mimeType);
+  })
 );
 
 // Solo para desarrollo: limpia la base de datos en memoria del servidor.

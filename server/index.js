@@ -15,7 +15,7 @@ validateEmailConfig();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use("/api", router);
 
 // En producción (Railway) este mismo proceso sirve el frontend ya compilado

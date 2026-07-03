@@ -13,7 +13,8 @@ class InMemoryDatabase {
   constructor() {
     this.users = new Map(); // key: email normalizado
     this.businesses = new Map(); // key: email normalizado
-    this.collaborators = new Map(); // key: visitorEmail, value: array de colaboradores
+    this.collaborators = new Map(); // key: businessEmail, value: array de colaboradores
+    this.publications = new Map(); // key: businessEmail, value: array de publicaciones
   }
 }
 
@@ -36,6 +37,7 @@ export function resetDatabase() {
   db.users.clear();
   db.businesses.clear();
   db.collaborators.clear();
+  db.publications.clear();
   seedDemoUser();
 }
 
