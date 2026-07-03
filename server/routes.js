@@ -6,6 +6,7 @@ import * as businessService from "./businessService.js";
 import * as collaboratorService from "./collaboratorService.js";
 import * as visionService from "./visionService.js";
 import * as publicationService from "./publicationService.js";
+import * as vecinoService from "./vecinoService.js";
 
 export const router = Router();
 
@@ -146,6 +147,23 @@ router.post(
     }
     return visionService.identifyProduct(image, mimeType);
   })
+);
+
+// ─── Vecinos ──────────────────────────────────────────────────────────────
+
+router.post(
+  "/vecino",
+  handle(async (req) => vecinoService.saveVecino(req.body))
+);
+
+router.get(
+  "/vecino/:email",
+  handle(async (req) => vecinoService.getVecinoByEmail(req.params.email))
+);
+
+router.put(
+  "/vecino/:email/location",
+  handle(async (req) => vecinoService.updateVecinoLocation(req.params.email, req.body.lat, req.body.lng))
 );
 
 // Solo para desarrollo: limpia la base de datos en memoria del servidor.

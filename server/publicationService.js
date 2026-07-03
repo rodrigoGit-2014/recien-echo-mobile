@@ -89,25 +89,31 @@ export function getAllActivePublicationsForRadar() {
   for (const [businessEmail, publications] of db.publications.entries()) {
     const business = db.businesses.get(businessEmail);
     if (!business) continue;
+    // Solo incluir publicaciones de negocios con ubicación
+    if (!business.lat || !business.lng) continue;
 
     const active = publications.filter(p => p.expiresAt > now && p.active);
 
     for (const pub of active) {
       allActive.push({
-        ...pub,
-        business: {
-          name: business.name,
-          category: business.category,
-          lat: business.lat,
-          lng: business.lng,
-          code: business.code,
-        },
+        id: pub.id,
+        product: pub.product,
+        quantity: pub.quantity,
+        category: pub.category || business.category,
+        publishedAt: pub.createdAt,
+        expiresAt: pub.expiresAt,
+        // Datos del negocio en nivel plano para el mapa
+        businessName: business.name,
+        businessCode: business.code,
+        address: business.address,
+        lat: business.lat,
+        lng: business.lng,
       });
     }
   }
 
   // Ordenar por más reciente primero
-  allActive.sort((a, b) => b.createdAt - a.createdAt);
+  allActive.sort((a, b) => b.publishedAt - a.publishedAt);
 
   return { ok: true, publications: allActive };
 }

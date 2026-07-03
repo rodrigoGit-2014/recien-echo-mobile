@@ -38,26 +38,23 @@ export async function registerUser({ email, password, role = "vecino" }) {
     throw new AuthError("EMAIL_TAKEN", "Este correo ya está registrado.", 409);
   }
 
-  const needsVerification = role === "negocio";
-  const verificationCode = needsVerification ? generateCode() : null;
+  const verificationCode = generateCode();
 
   const user = {
     email: normalized,
     passwordHash: hashPassword(password),
     role,
-    verified: !needsVerification,
+    verified: false,
     verificationCode,
     resetCode: null,
     createdAt: Date.now(),
   };
   db.users.set(normalized, user);
 
-  if (needsVerification) {
-    const { subject, html } = verificationEmailContent(verificationCode);
-    await sendEmail({ to: normalized, subject, html });
-    // eslint-disable-next-line no-console
-    console.log(`[auth] código de verificación para ${normalized}: ${verificationCode}`);
-  }
+  const { subject, html } = verificationEmailContent(verificationCode);
+  await sendEmail({ to: normalized, subject, html });
+  // eslint-disable-next-line no-console
+  console.log(`[auth] código de verificación para ${normalized}: ${verificationCode}`);
 
   return { user: sanitizeUser(user) };
 }

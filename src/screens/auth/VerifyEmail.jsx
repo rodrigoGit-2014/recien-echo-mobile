@@ -16,7 +16,7 @@ function useCountdown(initial, active) {
   return t;
 }
 
-export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com" }) {
+export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com", role }) {
   const [enteredCode, setEnteredCode] = useState("");
   const [resendActive, setResendActive] = useState(true);
   const [pending, setPending] = useState(false);
@@ -30,7 +30,7 @@ export function VerifyEmailScreen({ nav, email = "tunegocio@correo.com" }) {
     setVerifyError(null);
     try {
       await verifyUser(email, enteredCode);
-      nav.go("accountVerified", { email });
+      nav.go("accountVerified", { email, role });
     } catch (err) {
       setVerifyError(err.message || "No pudimos verificar tu cuenta. Inténtalo de nuevo.");
     } finally {

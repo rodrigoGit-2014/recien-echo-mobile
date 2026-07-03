@@ -1,128 +1,180 @@
-import { useMemo, useState } from "react";
-import { MapBackground, UserMarker } from "../../components/radar/MapBackground.jsx";
-import { Pin, ClusterPin } from "../../components/radar/Pin.jsx";
+import { useEffect, useMemo, useState } from "react";
+import { RealMap } from "../../components/radar/RealMap.jsx";
 import { RadarTopOverlay } from "../../components/radar/RadarTopOverlay.jsx";
 import { ProductCard } from "../../components/radar/ProductCard.jsx";
-import { clusterPins } from "../../components/radar/clustering.js";
 import { ChevronDownIcon, CrosshairIcon } from "../../components/common/icons.jsx";
 
-export function RadarScreen({ pins, now, onOpenDetail, onOpenProfile, onOpenNotifications }) {
+const API_BASE = "/api";
+
+// Calcular distancia entre dos puntos en metros
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // Radio de la Tierra en metros
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Calcular tiempo caminando (aprox 5 km/h)
+function walkMinutes(meters) {
+  return Math.max(1, Math.round(meters / 83));
+}
+
+export function RadarScreen({ userLocation, onOpenDetail, onOpenProfile, onOpenNotifications }) {
   const [category, setCategory] = useState("todos");
   const [selectedId, setSelectedId] = useState(null);
   const [expanded, setExpanded] = useState(false);
-  const [expandedCluster, setExpandedCluster] = useState(null);
-  const userPos = { x: 46, y: 44 };
+  const [publications, setPublications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const visiblePins = category === "todos" ? pins : pins.filter((p) => p.category === category);
+  const sheetHeight = expanded ? "64%" : "188px";
+
+  // Cargar publicaciones del backend
+  useEffect(() => {
+    async function loadPublications() {
+      try {
+        const res = await fetch(`${API_BASE}/radar/publications`);
+        const data = await res.json();
+        if (data.ok && data.publications) {
+          const pubs = data.publications.map(pub => {
+            const distanceM = userLocation
+              ? calculateDistance(userLocation.lat, userLocation.lng, pub.lat, pub.lng)
+              : 0;
+            return {
+              ...pub,
+              distanceM: Math.round(distanceM),
+              walkMin: walkMinutes(distanceM),
+            };
+          });
+          setPublications(pubs);
+        }
+      } catch (err) {
+        console.error("Error cargando publicaciones:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPublications();
+    const interval = setInterval(loadPublications, 30000);
+    return () => clearInterval(interval);
+  }, [userLocation]);
+
+  const visiblePubs = category === "todos"
+    ? publications
+    : publications.filter((p) => p.category === category);
+
   const sortedByDistance = useMemo(
-    () => [...visiblePins].sort((a, b) => a.distanceM - b.distanceM),
-    [visiblePins]
+    () => [...visiblePubs].sort((a, b) => a.distanceM - b.distanceM),
+    [visiblePubs]
   );
 
-  const groups = useMemo(() => clusterPins(pins), [pins]);
-
-  function handleSelectPin(pin) {
-    setSelectedId(pin.id);
+  function handleSelectPublication(pub) {
+    setSelectedId(pub.id);
   }
 
-  function handleExpandCluster(group, cx, cy) {
-    setExpandedCluster({ ids: group.map((p) => p.id), cx, cy });
+  function handleCardClick(pub) {
+    setSelectedId(pub.id);
+    onOpenDetail(pub);
   }
 
-  function handleCardClick(pin) {
-    setSelectedId(pin.id);
-    onOpenDetail(pin);
+  function handleCenterMap() {
+    setSelectedId(null);
   }
 
   return (
-    <div className="re-screen">
-      <div style={{ position: "relative", flex: 1, overflow: "hidden" }}>
-        <MapBackground />
-        <UserMarker x={userPos.x} y={userPos.y} />
-
-        {groups.map((group, gi) => {
-          const isClusterExpanded = expandedCluster && group.every((p) => expandedCluster.ids.includes(p.id));
-          if (group.length === 1) {
-            const pin = group[0];
-            const dim = category !== "todos" && pin.category !== category;
-            return (
-              <Pin
-                key={pin.id}
-                pin={pin}
-                now={now}
-                selected={selectedId === pin.id}
-                dim={dim}
-                onSelect={handleSelectPin}
-              />
-            );
-          }
-          if (!isClusterExpanded) {
-            const dim = category !== "todos" && !group.some((p) => p.category === category);
-            return (
-              <div key={"c" + gi} style={{ opacity: dim ? 0.22 : 1 }}>
-                <ClusterPin group={group} onExpand={handleExpandCluster} />
-              </div>
-            );
-          }
-          const n = group.length;
-          const radiusPct = 11;
-          return group.map((pin, i) => {
-            const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-            const fx = expandedCluster.cx + Math.cos(angle) * radiusPct;
-            const fy = expandedCluster.cy + Math.sin(angle) * radiusPct * 0.75;
-            const dim = category !== "todos" && pin.category !== category;
-            return (
-              <Pin
-                key={pin.id}
-                pin={{ ...pin, x: fx, y: fy }}
-                now={now}
-                selected={selectedId === pin.id}
-                dim={dim}
-                onSelect={handleSelectPin}
-              />
-            );
-          });
-        })}
-
-        <RadarTopOverlay
-          activeCategory={category}
-          onSelectCategory={(c) => { setCategory(c); setExpandedCluster(null); }}
-          onOpenProfile={onOpenProfile}
-          onOpenNotifications={onOpenNotifications}
+    <div style={{
+      position: "absolute",
+      inset: 0,
+      display: "flex",
+      flexDirection: "column",
+      background: "var(--bg)"
+    }}>
+      {/* Área del mapa */}
+      <div style={{
+        flex: 1,
+        position: "relative",
+        overflow: "hidden",
+        minHeight: 0
+      }}>
+        <RealMap
+          userLocation={userLocation}
+          publications={visiblePubs}
+          selectedId={selectedId}
+          onSelectPublication={handleSelectPublication}
+          onOpenDetail={onOpenDetail}
         />
 
+        {/* Overlay superior con categorías */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 1000 }}>
+          <RadarTopOverlay
+            activeCategory={category}
+            onSelectCategory={(c) => setCategory(c)}
+            onOpenProfile={onOpenProfile}
+            onOpenNotifications={onOpenNotifications}
+          />
+        </div>
+
+        {/* Botón centrar */}
         <button
           className="re-center-btn"
-          style={{ bottom: expanded ? "calc(64% + 16px)" : "204px" }}
-          onClick={() => setExpandedCluster(null)}
+          style={{
+            position: "absolute",
+            right: 16,
+            bottom: 16,
+            zIndex: 1000
+          }}
+          onClick={handleCenterMap}
         >
           <CrosshairIcon size={20} />
         </button>
       </div>
 
-      <div className="re-sheet" style={{ height: expanded ? "64%" : "188px" }}>
+      {/* Sheet de productos */}
+      <div style={{
+        height: sheetHeight,
+        background: "var(--bg)",
+        borderTopLeftRadius: 27,
+        borderTopRightRadius: 27,
+        border: "1px solid var(--line)",
+        borderBottom: "none",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        flexShrink: 0,
+        transition: "height 340ms cubic-bezier(.3,.8,.3,1)",
+        zIndex: 1000
+      }}>
         <div className="re-sheet__handle" />
         <div className="re-nearby-header" onClick={() => setExpanded((e) => !e)}>
           <div>
             <div className="re-nearby-title">Cerca de ti</div>
-            <div className="re-nearby-count">{visiblePins.length} recién hechos</div>
+            <div className="re-nearby-count">
+              {loading ? "Cargando..." : `${visiblePubs.length} recién hechos`}
+            </div>
           </div>
           <ChevronDownIcon size={20} className={`re-nearby-chevron ${expanded ? "re-nearby-chevron--up" : ""}`} />
         </div>
         <div className="re-scroll re-pad" style={{ paddingBottom: 20 }}>
-          {sortedByDistance.length === 0 ? (
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-dim)", fontSize: 14 }}>
+              Buscando productos cerca de ti...
+            </div>
+          ) : sortedByDistance.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-dim)", fontSize: 14 }}>
               No hay publicaciones recién hechas en esta categoría por ahora. Prueba con "Todos" o vuelve en unos minutos.
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {sortedByDistance.map((pin) => (
+              {sortedByDistance.map((pub) => (
                 <ProductCard
-                  key={pin.id}
-                  pin={pin}
-                  now={now}
-                  active={selectedId === pin.id}
-                  onClick={() => handleCardClick(pin)}
+                  key={pub.id}
+                  pin={pub}
+                  now={Date.now()}
+                  active={selectedId === pub.id}
+                  onClick={() => handleCardClick(pub)}
                 />
               ))}
             </div>

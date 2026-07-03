@@ -81,8 +81,8 @@
 }
 
 .re-radar-topbar {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 20;
-  background: rgba(20,20,16,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  position: absolute; top: 0; left: 0; right: 0; z-index: 1001;
+  background: rgba(20,20,16,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   padding-top: 47px;
 }
 .re-radar-topbar__row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 12px; }

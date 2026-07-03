@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNav } from "./navigation/useNav.js";
 import { PhoneFrame } from "./components/common/PhoneFrame.jsx";
 import { generateBusinessCode } from "./data/businessCode.js";
-import { buildMockPins, randomPin, MOCK_BUSINESSES } from "./data/mockData.js";
-import { getFreshness } from "./data/formatters.js";
 
 import { SplashScreen } from "./screens/Splash.jsx";
 import { ModeSelectScreen } from "./screens/ModeSelect.jsx";
@@ -45,48 +43,37 @@ export function App() {
   const nav = useNav();
   const { screen, params } = nav.current;
 
-  const [now, setNow] = useState(Date.now());
-  const [pins, setPins] = useState(() => buildMockPins());
   const [business, setBusiness] = useState(DEFAULT_BUSINESS);
   const [collaborators, setCollaborators] = useState([]);
   const [selectedPin, setSelectedPin] = useState(null);
   const [lastPublished, setLastPublished] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
-  const spawnCounter = useRef(0);
+  const [userLocation, setUserLocation] = useState(null);
 
-  // reloj global: actualiza frescura y hace expirar / aparecer pines
+  // Cargar ubicación del usuario si está logueado como vecino
   useEffect(() => {
-    const id = setInterval(() => {
-      const t = Date.now();
-      setNow(t);
-      setPins((prev) => {
-        let next = prev.filter((p) => !getFreshness(p.publishedAt, t).expired);
-        if (Math.random() < 0.12 && next.length < 16) {
-          spawnCounter.current += 1;
-          const biz = MOCK_BUSINESSES[Math.floor(Math.random() * MOCK_BUSINESSES.length)];
-          next = [
-            ...next,
-            randomPin(`spawn-${spawnCounter.current}-${t}`, biz, {
-              minutesAgo: 0,
-              x: 8 + Math.random() * 84,
-              y: 14 + Math.random() * 68,
-            }),
-          ];
+    async function loadVecinoLocation() {
+      if (!userEmail) return;
+      try {
+        const res = await fetch(`${API_BASE}/vecino/${encodeURIComponent(userEmail)}`);
+        const data = await res.json();
+        if (data.ok && data.vecino && data.vecino.lat && data.vecino.lng) {
+          setUserLocation({ lat: data.vecino.lat, lng: data.vecino.lng });
         }
-        return next;
-      });
-    }, 5000);
-    return () => clearInterval(id);
-  }, []);
+      } catch (err) {
+        console.error("Error cargando ubicación:", err);
+      }
+    }
+    loadVecinoLocation();
+  }, [userEmail]);
 
   const metrics = {
-    postedToday: pins.filter((p) => p.businessId === business.code || p.businessId === "self").length + 3,
+    postedToday: 3,
     viewsToday: 47,
     collaborators: collaborators.filter((c) => c.active).length,
   };
 
   async function handleSaveBusiness(draft) {
-    // Guardar en el backend
     const email = draft.email || userEmail || params.email;
     if (email) {
       try {
@@ -105,7 +92,6 @@ export function App() {
         console.error("Error guardando negocio:", err);
       }
     }
-    // Fallback: guardar solo en estado local
     const code = business.code || generateBusinessCode(draft.category);
     setBusiness((b) => ({ ...b, ...draft, code }));
     nav.go("dashboard");
@@ -126,7 +112,6 @@ export function App() {
 
   async function handleLoginSuccess(user) {
     setUserEmail(user.email);
-    // Intentar cargar negocio existente del backend
     try {
       const res = await fetch(`${API_BASE}/business/${encodeURIComponent(user.email)}`);
       const data = await res.json();
@@ -139,7 +124,6 @@ export function App() {
     } catch (err) {
       console.error("Error cargando negocio:", err);
     }
-    // Si no hay negocio, crear uno básico
     setBusiness((b) => (b.code ? b : {
       name: b.name || `Negocio de ${user.email.split("@")[0]}`,
       category: b.category || "pan",
@@ -250,10 +234,7 @@ export function App() {
         publishedAt: Date.now(),
         distanceM: 15,
         walkMin: 1,
-        x: 46,
-        y: 44,
       };
-      setPins((prev) => [pin, ...prev]);
       setLastPublished(pin);
       nav.go("publishConfirmation");
     } catch (err) {
@@ -264,6 +245,7 @@ export function App() {
   function handleLogout() {
     setBusiness(DEFAULT_BUSINESS);
     setUserEmail(null);
+    setUserLocation(null);
     nav.reset("splash");
   }
 
@@ -282,22 +264,56 @@ export function App() {
     case "vecinoSignup":
       node = <VecinoSignupScreen nav={nav} />;
       break;
+    case "loginVecino":
+      node = (
+        <LoginScreen
+          nav={nav}
+          role="vecino"
+          onLoginSuccess={async (user) => {
+            setUserEmail(user.email);
+            try {
+              const res = await fetch(`${API_BASE}/vecino/${encodeURIComponent(user.email)}`);
+              const data = await res.json();
+              if (data.ok && data.vecino) {
+                if (data.vecino.lat && data.vecino.lng) {
+                  setUserLocation({ lat: data.vecino.lat, lng: data.vecino.lng });
+                }
+              } else {
+                await fetch(`${API_BASE}/vecino`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email: user.email }),
+                });
+              }
+            } catch (err) {
+              console.error("Error cargando vecino:", err);
+            }
+            nav.go("radar");
+          }}
+        />
+      );
+      break;
     case "locationPermission":
-      node = <LocationPermissionScreen nav={nav} />;
+      node = (
+        <LocationPermissionScreen
+          nav={nav}
+          email={params.email || userEmail}
+          onLocationObtained={(loc) => setUserLocation(loc)}
+        />
+      );
       break;
     case "radar":
       node = (
         <RadarScreen
-          pins={pins}
-          now={now}
-          onOpenDetail={(pin) => { setSelectedPin(pin); nav.go("productDetail"); }}
+          userLocation={userLocation}
+          onOpenDetail={(pub) => { setSelectedPin(pub); nav.go("productDetail"); }}
           onOpenProfile={() => nav.go("modeSelect")}
           onOpenNotifications={() => {}}
         />
       );
       break;
     case "productDetail":
-      node = <ProductDetailScreen nav={nav} pin={selectedPin} now={now} />;
+      node = <ProductDetailScreen nav={nav} pin={selectedPin} now={Date.now()} />;
       break;
 
     // ---- Negocio: autenticación ----
@@ -305,16 +321,30 @@ export function App() {
       node = <CreateBusinessAccountScreen nav={nav} />;
       break;
     case "verifyEmail":
-      node = <VerifyEmailScreen nav={nav} email={params.email || "tunegocio@correo.com"} />;
+      node = <VerifyEmailScreen nav={nav} email={params.email || "tunegocio@correo.com"} role={params.role} />;
       break;
     case "accountVerified":
       node = (
         <AccountVerifiedScreen
           nav={nav}
           email={params.email}
-          onContinue={() => {
+          role={params.role}
+          onContinue={async () => {
             setUserEmail(params.email);
-            nav.go("configureBusiness", { email: params.email });
+            if (params.role === "vecino") {
+              try {
+                await fetch(`${API_BASE}/vecino`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email: params.email }),
+                });
+              } catch (err) {
+                console.error("Error guardando vecino:", err);
+              }
+              nav.go("locationPermission", { email: params.email });
+            } else {
+              nav.go("configureBusiness", { email: params.email });
+            }
           }}
         />
       );

@@ -21,7 +21,7 @@ export function VecinoSignupScreen({ nav }) {
     setError(null);
     try {
       await registerUser({ email, password: pin, role: "vecino" });
-      nav.go("locationPermission");
+      nav.go("verifyEmail", { email, role: "vecino" });
     } catch (err) {
       setError(err.message || "No pudimos crear tu cuenta. Inténtalo de nuevo.");
     } finally {
@@ -61,7 +61,7 @@ export function VecinoSignupScreen({ nav }) {
         </div>
 
         <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-dim)", marginTop: 18 }}>
-          ¿Ya tienes cuenta? <a onClick={() => nav.go("radar")} style={{ color: "var(--accent)", fontWeight: 600 }}>Inicia sesión</a>
+          ¿Ya tienes cuenta? <a onClick={() => nav.go("loginVecino")} style={{ color: "var(--accent)", fontWeight: 600 }}>Inicia sesión</a>
         </p>
       </div>
     </div>
