@@ -1,44 +1,45 @@
-// server/email.js — envío de correo por SMTP directo
+// server/email.js — envío de correo por Resend
 
-import nodemailer from "nodemailer";
-
-const REQUIRED_VARS = ["MAIL_HOST", "MAIL_USERNAME", "MAIL_PASSWORD"];
-
-export function validateSmtpConfig() {
-  const missing = REQUIRED_VARS.filter((v) => !process.env[v]);
-  if (missing.length > 0) {
-    throw new Error(`Faltan variables de entorno SMTP: ${missing.join(", ")}`);
+export function validateEmailConfig() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("Falta variable de entorno: RESEND_API_KEY");
   }
 }
 
-let smtpTransport = null;
-
-function getSmtpTransport() {
-  if (!smtpTransport) {
-    const port = Number(process.env.MAIL_PORT) || 587;
-    smtpTransport = nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      port,
-      secure: port === 465, // 465 = TLS implícito; 587/25 = STARTTLS
-      auth: { user: process.env.MAIL_USERNAME, pass: process.env.MAIL_PASSWORD },
-    });
-  }
-  return smtpTransport;
-}
-
-function smtpFromHeader() {
-  const from = process.env.APP_EMAIL_FROM || process.env.MAIL_USERNAME;
+function getFromHeader() {
+  const from = process.env.APP_EMAIL_FROM;
+  if (!from) return "ReciénEcho <onboarding@resend.dev>";
   return from.includes("<") ? from : `ReciénEcho <${from}>`;
 }
 
 export async function sendEmail({ to, subject, html }) {
-  const transport = getSmtpTransport();
-  await transport.sendMail({ from: smtpFromHeader(), to, subject, html });
-  return { provider: "smtp" };
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: getFromHeader(),
+      to: [to],
+      subject,
+      html,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    console.error(`[email:resend] Error ${response.status}: ${body}`);
+    throw new Error(`Resend respondió ${response.status}: ${body}`);
+  }
+
+  const data = await response.json();
+  console.log(`[email:resend] Enviado a ${to} — id: ${data.id}`);
+  return { provider: "resend", id: data.id };
 }
 
 export function describeEmailMode() {
-  return `SMTP directo (${process.env.MAIL_HOST}, remitente ${process.env.APP_EMAIL_FROM || process.env.MAIL_USERNAME})`;
+  return `Resend (remitente ${process.env.APP_EMAIL_FROM || "onboarding@resend.dev"})`;
 }
 
 function codeEmailHtml({ heading, body, code }) {
