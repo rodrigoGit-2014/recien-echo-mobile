@@ -12,7 +12,8 @@ import { hashPassword } from "./password.js";
 class InMemoryDatabase {
   constructor() {
     this.users = new Map(); // key: email normalizado
-    this.businesses = new Map(); // key: visitorId
+    this.businesses = new Map(); // key: email normalizado
+    this.collaborators = new Map(); // key: visitorEmail, value: array de colaboradores
   }
 }
 
@@ -34,6 +35,7 @@ function seedDemoUser() {
 export function resetDatabase() {
   db.users.clear();
   db.businesses.clear();
+  db.collaborators.clear();
   seedDemoUser();
 }
 

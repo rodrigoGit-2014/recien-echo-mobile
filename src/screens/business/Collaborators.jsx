@@ -4,11 +4,28 @@ import { TextField } from "../../components/common/TextField.jsx";
 import { Button } from "../../components/common/Button.jsx";
 import { ModalSheet } from "../../components/common/ModalSheet.jsx";
 import { Chip } from "../../components/common/Chip.jsx";
-import { ShareIcon, PlusIcon, PencilIcon, PowerIcon } from "../../components/common/icons.jsx";
+import { ShareIcon, PlusIcon, PencilIcon, PowerIcon, TrashIcon, TeamIcon } from "../../components/common/icons.jsx";
 
 export const CARGOS = ["Panadero", "Pastelero", "Cocinero", "Vendedor", "Barista", "Maestro pizzero", "Encargado de producción"];
 
-export function CollaboratorsScreen({ nav, business, collaborators, onAdd, onEdit, onToggleActive, onRegenerateCode }) {
+// Colores vibrantes para avatares basados en el nombre
+const AVATAR_COLORS = [
+  { bg: "#6366F1", text: "#fff" }, // Indigo
+  { bg: "#8B5CF6", text: "#fff" }, // Violet
+  { bg: "#EC4899", text: "#fff" }, // Pink
+  { bg: "#F59E0B", text: "#fff" }, // Amber
+  { bg: "#10B981", text: "#fff" }, // Emerald
+  { bg: "#06B6D4", text: "#fff" }, // Cyan
+  { bg: "#F97316", text: "#fff" }, // Orange
+  { bg: "#EF4444", text: "#fff" }, // Red
+];
+
+function getAvatarColor(name) {
+  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+}
+
+export function CollaboratorsScreen({ nav, business, collaborators, onAdd, onEdit, onToggleActive, onDelete, onRegenerateCode }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [name, setName] = useState("");
@@ -50,32 +67,186 @@ export function CollaboratorsScreen({ nav, business, collaborators, onAdd, onEdi
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17 }}>
-            Equipo · {activeCount} activos
-          </span>
-          <button className="re-btn re-btn--sm re-btn--primary" style={{ width: "auto", padding: "0 16px" }} onClick={openAdd}>
-            <PlusIcon size={15} /> Añadir
-          </button>
+        <div style={{
+          background: "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 100%)",
+          borderRadius: 16,
+          padding: "16px 18px",
+          marginBottom: 16,
+          border: "1px solid rgba(99,102,241,0.2)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{
+                width: 42,
+                height: 42,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <TeamIcon size={28} color="var(--accent)" />
+              </div>
+              <div>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 18, color: "var(--text)" }}>
+                  Mi Equipo
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                  <span style={{
+                    background: activeCount > 0 ? "linear-gradient(135deg, #10B981 0%, #059669 100%)" : "var(--surface-alt)",
+                    color: activeCount > 0 ? "#fff" : "var(--text-dim)",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: "3px 8px",
+                    borderRadius: 20,
+                    letterSpacing: "0.02em",
+                  }}>
+                    {activeCount} {activeCount === 1 ? "activo" : "activos"}
+                  </span>
+                  <span style={{ color: "var(--text-dim)", fontSize: 12 }}>
+                    · {collaborators.length} total
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={openAdd}
+              style={{
+                background: "var(--accent)",
+                border: "none",
+                borderRadius: 12,
+                padding: "10px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                color: "var(--on-accent)",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(232,162,61,0.3)",
+              }}
+            >
+              <PlusIcon size={16} color="var(--on-accent)" /> Añadir
+            </button>
+          </div>
         </div>
 
         {collaborators.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-dim)", fontSize: 14 }}>
-            Aún no tienes colaboradores. Añade a tu equipo para que puedan publicar contigo.
+          <div style={{
+            textAlign: "center",
+            padding: "50px 24px",
+            color: "var(--text-dim)",
+            fontSize: 14,
+            background: "var(--surface)",
+            borderRadius: 16,
+            border: "1px dashed var(--line)",
+          }}>
+            <TeamIcon size={40} color="var(--text-dim)" style={{ opacity: 0.4, marginBottom: 12 }} />
+            <div style={{ fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>Sin colaboradores</div>
+            <div>Añade a tu equipo para que puedan publicar contigo.</div>
           </div>
         ) : (
-          <div>
-            {collaborators.map((c) => (
-              <div key={c.id} className="re-collab-row" style={{ opacity: c.active ? 1 : 0.5 }}>
-                <div className="re-avatar">{c.name.charAt(0).toUpperCase()}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14.5 }}>{c.name}</div>
-                  <div style={{ fontSize: 12.5, color: "var(--text-dim)" }}>{c.cargo} · {c.active ? "Activo" : "Inactivo"}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {collaborators.map((c) => {
+              const avatarColor = getAvatarColor(c.name);
+              return (
+                <div
+                  key={c.id}
+                  style={{
+                    background: "var(--surface)",
+                    borderRadius: 14,
+                    padding: "14px 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    border: "1px solid var(--line)",
+                    opacity: c.active ? 1 : 0.6,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: c.active ? avatarColor.bg : "var(--surface-alt)",
+                    color: c.active ? avatarColor.text : "var(--text-dim)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 800,
+                    fontSize: 18,
+                    fontFamily: "var(--font-display)",
+                    boxShadow: c.active ? `0 4px 12px ${avatarColor.bg}40` : "none",
+                  }}>
+                    {c.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>{c.name}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 12.5, color: "var(--text-dim)" }}>{c.cargo}</span>
+                      <span style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        padding: "2px 6px",
+                        borderRadius: 6,
+                        background: c.active ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.1)",
+                        color: c.active ? "#10B981" : "#EF4444",
+                      }}>
+                        {c.active ? "Activo" : "Inactivo"}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      onClick={() => openEdit(c)}
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        border: "none",
+                        background: "rgba(6,182,212,0.12)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <PencilIcon size={16} color="#06B6D4" />
+                    </button>
+                    <button
+                      onClick={() => onToggleActive(c.id)}
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        border: "none",
+                        background: c.active ? "rgba(16,185,129,0.12)" : "rgba(156,163,175,0.12)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <PowerIcon size={16} color={c.active ? "#10B981" : "#9CA3AF"} />
+                    </button>
+                    <button
+                      onClick={() => onDelete(c.id)}
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        border: "none",
+                        background: "rgba(239,68,68,0.1)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <TrashIcon size={16} color="#EF4444" />
+                    </button>
+                  </div>
                 </div>
-                <button className="re-icon-btn-sm" onClick={() => openEdit(c)}><PencilIcon size={15} /></button>
-                <button className="re-icon-btn-sm" onClick={() => onToggleActive(c.id)}><PowerIcon size={15} color={c.active ? "var(--fresh)" : "var(--text-dim)"} /></button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

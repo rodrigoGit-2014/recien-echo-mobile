@@ -48,11 +48,7 @@ export function App() {
   const [now, setNow] = useState(Date.now());
   const [pins, setPins] = useState(() => buildMockPins());
   const [business, setBusiness] = useState(DEFAULT_BUSINESS);
-  const [collaborators, setCollaborators] = useState([
-    { id: "c1", name: "Marisol Pérez", cargo: "Panadera", active: true },
-    { id: "c2", name: "Iván Soto", cargo: "Vendedor", active: true },
-    { id: "c3", name: "Camila Rojas", cargo: "Encargada de producción", active: false },
-  ]);
+  const [collaborators, setCollaborators] = useState([]);
   const [selectedPin, setSelectedPin] = useState(null);
   const [lastPublished, setLastPublished] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
@@ -115,6 +111,19 @@ export function App() {
     nav.go("dashboard");
   }
 
+  async function loadCollaborators(email) {
+    if (!email) return;
+    try {
+      const res = await fetch(`${API_BASE}/collaborators/${encodeURIComponent(email)}`);
+      const data = await res.json();
+      if (data.ok) {
+        setCollaborators(data.collaborators || []);
+      }
+    } catch (err) {
+      console.error("Error cargando colaboradores:", err);
+    }
+  }
+
   async function handleLoginSuccess(user) {
     setUserEmail(user.email);
     // Intentar cargar negocio existente del backend
@@ -123,6 +132,7 @@ export function App() {
       const data = await res.json();
       if (data.ok && data.business) {
         setBusiness(data.business);
+        await loadCollaborators(user.email);
         nav.go("dashboard");
         return;
       }
@@ -140,6 +150,78 @@ export function App() {
       lng: null,
     }));
     nav.go("dashboard");
+  }
+
+  async function handleAddCollaborator({ name, cargo }) {
+    const email = userEmail;
+    if (!email) return;
+    try {
+      const res = await fetch(`${API_BASE}/collaborators`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessEmail: email, name, cargo }),
+      });
+      const data = await res.json();
+      if (data.ok && data.collaborator) {
+        setCollaborators((prev) => [...prev, data.collaborator]);
+      }
+    } catch (err) {
+      console.error("Error añadiendo colaborador:", err);
+    }
+  }
+
+  async function handleEditCollaborator(id, { name, cargo }) {
+    const email = userEmail;
+    if (!email) return;
+    try {
+      const res = await fetch(`${API_BASE}/collaborators/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessEmail: email, name, cargo }),
+      });
+      const data = await res.json();
+      if (data.ok && data.collaborator) {
+        setCollaborators((prev) => prev.map((c) => (c.id === id ? data.collaborator : c)));
+      }
+    } catch (err) {
+      console.error("Error editando colaborador:", err);
+    }
+  }
+
+  async function handleToggleCollaborator(id) {
+    const email = userEmail;
+    if (!email) return;
+    try {
+      const res = await fetch(`${API_BASE}/collaborators/${id}/toggle`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessEmail: email }),
+      });
+      const data = await res.json();
+      if (data.ok && data.collaborator) {
+        setCollaborators((prev) => prev.map((c) => (c.id === id ? data.collaborator : c)));
+      }
+    } catch (err) {
+      console.error("Error toggle colaborador:", err);
+    }
+  }
+
+  async function handleDeleteCollaborator(id) {
+    const email = userEmail;
+    if (!email) return;
+    try {
+      const res = await fetch(`${API_BASE}/collaborators/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessEmail: email }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setCollaborators((prev) => prev.filter((c) => c.id !== id));
+      }
+    } catch (err) {
+      console.error("Error eliminando colaborador:", err);
+    }
   }
 
   function handlePublish({ product, quantity }) {
@@ -254,9 +336,10 @@ export function App() {
           nav={nav}
           business={business}
           collaborators={collaborators}
-          onAdd={(c) => setCollaborators((prev) => [...prev, { id: `c${Date.now()}`, active: true, ...c }])}
-          onEdit={(id, patch) => setCollaborators((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)))}
-          onToggleActive={(id) => setCollaborators((prev) => prev.map((c) => (c.id === id ? { ...c, active: !c.active } : c)))}
+          onAdd={handleAddCollaborator}
+          onEdit={handleEditCollaborator}
+          onToggleActive={handleToggleCollaborator}
+          onDelete={handleDeleteCollaborator}
           onRegenerateCode={() => setBusiness((b) => ({ ...b, code: generateBusinessCode(b.category) }))}
         />
       );

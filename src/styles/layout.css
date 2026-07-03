@@ -1,5 +1,5 @@
 /* ---------- topbar ---------- */
-.re-topbar { height: 56px; display: flex; align-items: center; padding: 0 16px; position: relative; flex-shrink: 0; }
+.re-topbar { height: 56px; display: flex; align-items: center; padding: 0 16px; padding-top: 50px; position: relative; flex-shrink: 0; box-sizing: content-box; }
 .re-back-btn {
   width: 42px; height: 42px; border-radius: 14px;
   background: var(--surface); border: 1px solid var(--line);

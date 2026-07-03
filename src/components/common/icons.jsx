@@ -36,3 +36,4 @@ export const CrosshairIcon = mkIcon(<><circle cx="12" cy="12" r="7" /><path d="M
 export const LogoutIcon = mkIcon(<><path d="M9 21H5.5A2.5 2.5 0 0 1 3 18.5v-13A2.5 2.5 0 0 1 5.5 3H9" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></>);
 export const SettingsIcon = mkIcon(<><circle cx="12" cy="12" r="3" /><path d="M19.4 13.9a7.9 7.9 0 0 0 0-3.8l2-1.5-2-3.4-2.3.9a8 8 0 0 0-3.3-1.9L13.4 2h-4l-.4 2.2a8 8 0 0 0-3.3 1.9l-2.3-.9-2 3.4 2 1.5a7.9 7.9 0 0 0 0 3.8l-2 1.5 2 3.4 2.3-.9a8 8 0 0 0 3.3 1.9l.4 2.2h4l.4-2.2a8 8 0 0 0 3.3-1.9l2.3.9 2-3.4-2-1.5Z" /></>);
 export const TeamIcon = mkIcon(<><circle cx="8.5" cy="8" r="3" /><circle cx="16" cy="9" r="2.4" /><path d="M2.5 19c.8-3.4 3-5.2 6-5.2s5.2 1.8 6 5.2" /><path d="M14.8 14.2c2.3.3 3.7 1.8 4.3 4.3" /></>);
+export const TrashIcon = mkIcon(<><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M10 11v6M14 11v6" /></>);

@@ -3,6 +3,7 @@ import { AuthError } from "./errors.js";
 import { resetDatabase } from "./db.js";
 import * as authService from "./authService.js";
 import * as businessService from "./businessService.js";
+import * as collaboratorService from "./collaboratorService.js";
 
 export const router = Router();
 
@@ -65,6 +66,44 @@ router.post(
 router.get(
   "/business/:email",
   handle(async (req) => businessService.getBusinessByEmail(req.params.email))
+);
+
+// ─── Colaboradores ─────────────────────────────────────────────────────────
+
+router.get(
+  "/collaborators/:businessEmail",
+  handle(async (req) => collaboratorService.getCollaborators(req.params.businessEmail))
+);
+
+router.post(
+  "/collaborators",
+  handle(async (req) => collaboratorService.addCollaborator(req.body))
+);
+
+router.put(
+  "/collaborators/:id",
+  handle(async (req) => collaboratorService.editCollaborator({
+    businessEmail: req.body.businessEmail,
+    collaboratorId: req.params.id,
+    name: req.body.name,
+    cargo: req.body.cargo,
+  }))
+);
+
+router.put(
+  "/collaborators/:id/toggle",
+  handle(async (req) => collaboratorService.toggleCollaboratorActive({
+    businessEmail: req.body.businessEmail,
+    collaboratorId: req.params.id,
+  }))
+);
+
+router.delete(
+  "/collaborators/:id",
+  handle(async (req) => collaboratorService.deleteCollaborator({
+    businessEmail: req.body.businessEmail,
+    collaboratorId: req.params.id,
+  }))
 );
 
 // Solo para desarrollo: limpia la base de datos en memoria del servidor.
