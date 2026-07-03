@@ -8,7 +8,7 @@ export function validateEmailConfig() {
 
 function getFromHeader() {
   const from = process.env.APP_EMAIL_FROM;
-  if (!from) return "ReciénEcho <onboarding@resend.dev>";
+  if (!from) return "ReciénEcho <no-reply@recienecho.com>";
   return from.includes("<") ? from : `ReciénEcho <${from}>`;
 }
 
@@ -39,7 +39,7 @@ export async function sendEmail({ to, subject, html }) {
 }
 
 export function describeEmailMode() {
-  return `Resend (remitente ${process.env.APP_EMAIL_FROM || "onboarding@resend.dev"})`;
+  return `Resend (remitente ${process.env.APP_EMAIL_FROM || "no-reply@recienecho.com"})`;
 }
 
 function codeEmailHtml({ heading, body, code }) {
