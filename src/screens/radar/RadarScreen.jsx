@@ -29,6 +29,7 @@ export function RadarScreen({ userLocation, onOpenDetail, onOpenProfile, onOpenN
   const [expanded, setExpanded] = useState(false);
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recenterTrigger, setRecenterTrigger] = useState(0);
 
   const sheetHeight = expanded ? "64%" : "188px";
 
@@ -82,6 +83,7 @@ export function RadarScreen({ userLocation, onOpenDetail, onOpenProfile, onOpenN
 
   function handleCenterMap() {
     setSelectedId(null);
+    setRecenterTrigger((t) => t + 1);
   }
 
   return (
@@ -105,6 +107,7 @@ export function RadarScreen({ userLocation, onOpenDetail, onOpenProfile, onOpenN
           selectedId={selectedId}
           onSelectPublication={handleSelectPublication}
           onOpenDetail={onOpenDetail}
+          recenterTrigger={recenterTrigger}
         />
 
         {/* Overlay superior con categorías */}

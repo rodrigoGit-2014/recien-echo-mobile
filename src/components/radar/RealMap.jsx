@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // Fix para iconos de Leaflet en Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -71,12 +71,29 @@ function MapCenterUpdater({ center }) {
   return null;
 }
 
+// Vuelve a centrar el mapa en la ubicación del usuario cada vez que se pulsa el botón de centrar
+function RecenterOnRequest({ center, recenterTrigger }) {
+  const map = useMap();
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (center) {
+      map.flyTo(center, Math.max(map.getZoom(), 18));
+    }
+  }, [recenterTrigger]);
+  return null;
+}
+
 export function RealMap({
   userLocation,
   publications = [],
   selectedId,
   onSelectPublication,
-  onOpenDetail
+  onOpenDetail,
+  recenterTrigger
 }) {
   // Ubicación por defecto (Santiago, Las Condes)
   const defaultLocation = { lat: -33.4103, lng: -70.5672 };
@@ -119,7 +136,7 @@ export function RealMap({
       `}</style>
       <MapContainer
         center={[center.lat, center.lng]}
-        zoom={16}
+        zoom={18}
         style={{ height: "100%", width: "100%" }}
         zoomControl={false}
       >
@@ -129,6 +146,7 @@ export function RealMap({
         />
 
         <MapCenterUpdater center={[center.lat, center.lng]} />
+        <RecenterOnRequest center={[center.lat, center.lng]} recenterTrigger={recenterTrigger} />
 
         {/* Marcador del usuario */}
         {userLocation && (
